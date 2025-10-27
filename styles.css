@@ -487,4 +487,275 @@ body {
     color: var(--silver);
     padding: 4rem;
     font-size: 1rem;
+
     letter-spacing: 0.2em; }
+/* About Section Styles */
+.about-content {
+    color: var(--cream);
+}
+
+.about-title {
+    font-size: clamp(3rem, 8vw, 5rem);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+.about-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--silver);
+    margin-bottom: 4rem;
+}
+
+.about-text p {
+    margin-bottom: 1.5rem;
+}
+
+/* Team Section */
+.team-section {
+    margin: 5rem 0;
+    padding: 3rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 4px solid var(--orange);
+}
+
+.team-title {
+    font-size: 1.5rem;
+    letter-spacing: 0.2em;
+    margin-bottom: 2rem;
+    color: var(--orange);
+    font-weight: 900;
+}
+
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.team-member {
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    transition: transform 0.3s ease;
+}
+
+.team-member:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.team-role {
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    color: var(--orange);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.team-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--cream);
+}
+
+/* GitHub CTA Section */
+.github-cta {
+    margin: 5rem 0;
+    padding: 4rem;
+    background: linear-gradient(135deg, var(--navy) 0%, #062850 100%);
+    text-align: center;
+}
+
+.github-cta-title {
+    font-size: 2.5rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.5rem;
+    font-weight: 900;
+    color: var(--cream);
+}
+
+.github-cta-text {
+    font-size: 1rem;
+    color: var(--silver);
+    margin-bottom: 3rem;
+    line-height: 1.8;
+}
+
+.github-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.github-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 2.5rem;
+    background: var(--cream);
+    color: var(--dark);
+    text-decoration: none;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    border: 2px solid var(--cream);
+}
+
+.github-btn:hover {
+    background: var(--orange);
+    border-color: var(--orange);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+}
+
+.github-btn.secondary {
+    background: transparent;
+    color: var(--cream);
+}
+
+.github-btn.secondary:hover {
+    background: var(--cream);
+    color: var(--dark);
+}
+
+.github-note {
+    font-size: 0.85rem;
+    color: var(--silver);
+    font-style: italic;
+}
+
+/* License Section */
+.license-section {
+    margin-top: 5rem;
+    padding-top: 3rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.license-text {
+    font-size: 0.9rem;
+    color: var(--silver);
+    margin-bottom: 0.5rem;
+}
+
+.license-disclaimer {
+    font-size: 0.8rem;
+    color: var(--silver);
+    opacity: 0.6;
+}
+
+/* Footer */
+.main-footer {
+    background: var(--dark);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 4rem 2rem 2rem;
+}
+
+.footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.footer-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+    gap: 3rem;
+}
+
+.footer-brand {
+    flex: 1;
+    min-width: 300px;
+}
+
+.footer-logo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: var(--cream);
+    margin-bottom: 0.5rem;
+}
+
+.footer-tagline {
+    font-size: 0.85rem;
+    color: var(--silver);
+    line-height: 1.6;
+}
+
+.footer-links {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.footer-link {
+    color: var(--silver);
+    text-decoration: none;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+    color: var(--orange);
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--silver);
+    font-size: 0.8rem;
+}
+
+.footer-bottom p {
+    margin: 0.5rem 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .prediction-showcase {
+        grid-template-columns: 1fr;
+    }
+    
+    .history-item {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .history-predictions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-content {
+        gap: 1.5rem;
+        padding: 1rem;
+    }
+    
+    .stats-showcase {
+        grid-template-columns: 1fr;
+    }
+    
+    .history-predictions {
+        grid-template-columns: 1fr;
+    }
+    
+    .github-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .footer-top {
+        flex-direction: column;
+    }
+}
