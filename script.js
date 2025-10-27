@@ -1,5 +1,6 @@
-// API Configuration
-const API_URL = 'http://localhost:3001/api';
+const API_URL = window.location.hostname === "localhost"
+  ? "http://localhost:3001/api"
+  : "https://cowboys-playoff-prediction-app.onrender.com/api";
 
 // State management
 let currentPrediction = null;
@@ -280,4 +281,5 @@ function showMockData() {
     updatePredictionDisplay(mockPrediction);
     updateStatsDisplay(mockStats);
     updateHistoryDisplay(mockHistory);
+
 }
