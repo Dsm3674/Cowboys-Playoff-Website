@@ -1,3 +1,4 @@
+
 const API_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:3001/api"
@@ -88,7 +89,7 @@ async function loadLiveRecord() {
 async function generateNewPrediction() {
   const btn = document.getElementById("generate-btn");
   const originalText = btn.innerHTML;
-  
+
   btn.disabled = true;
   btn.innerHTML = '<span>GENERATING...</span>';
 
@@ -114,7 +115,7 @@ async function generateNewPrediction() {
   } catch (error) {
     console.error("Error generating prediction:", error);
     showError("Failed to generate new prediction. Please try again.");
-    
+
     btn.innerHTML = '<span>ERROR - TRY AGAIN</span>';
     setTimeout(() => {
       btn.innerHTML = originalText;
@@ -137,29 +138,39 @@ async function loadPredictionHistory() {
   }
 }
 
+// -------------------------------
+// UI UPDATE FUNCTIONS
+// -------------------------------
+
 function updatePredictionDisplay(prediction) {
   if (!prediction) return;
 
-  // Handle both decimal (0.xx) and percentage (xx) formats
-  const playoffProb = prediction.playoff_probability > 1
-    ? prediction.playoff_probability
-    : Math.round(prediction.playoff_probability * 100);
-
-  const divisionProb = prediction.division_probability > 1
-    ? prediction.division_probability
-    : Math.round(prediction.division_probability * 100);
-
-  const conferenceProb = prediction.conference_probability > 1
-    ? prediction.conference_probability
-    : Math.round(prediction.conference_probability * 100);
-
-  const superbowlProb = prediction.superbowl_probability > 1
-    ? prediction.superbowl_probability
-    : Math.round(prediction.superbowl_probability * 100);
-
-  const confidence = prediction.confidence_score > 1
-    ? prediction.confidence_score
-    : Math.round(prediction.confidence_score * 100);
+  // ✅ Fix: handle both 0.xx and xx values safely
+  const playoffProb = Math.round(
+    (prediction.playoff_probability > 1
+      ? prediction.playoff_probability / 100
+      : prediction.playoff_probability) * 100
+  );
+  const divisionProb = Math.round(
+    (prediction.division_probability > 1
+      ? prediction.division_probability / 100
+      : prediction.division_probability) * 100
+  );
+  const conferenceProb = Math.round(
+    (prediction.conference_probability > 1
+      ? prediction.conference_probability / 100
+      : prediction.conference_probability) * 100
+  );
+  const superbowlProb = Math.round(
+    (prediction.superbowl_probability > 1
+      ? prediction.superbowl_probability / 100
+      : prediction.superbowl_probability) * 100
+  );
+  const confidence = Math.round(
+    (prediction.confidence_score > 1
+      ? prediction.confidence_score / 100
+      : prediction.confidence_score) * 100
+  );
 
   // Update UI
   document.getElementById("playoff-prob").textContent = `${playoffProb}%`;
@@ -186,6 +197,12 @@ function updateSeasonDisplay(season) {
 
   document.getElementById("record").textContent = record;
   document.getElementById("win-pct").textContent = winPct;
+
+  // ✅ Fix: display offensive / defensive ratings if available
+  if (season.avg_points_scored !== undefined)
+    document.getElementById("off-rating").textContent = season.avg_points_scored.toFixed(1);
+  if (season.avg_points_allowed !== undefined)
+    document.getElementById("def-rating").textContent = season.avg_points_allowed.toFixed(1);
 }
 
 function updateLiveRecordDisplay(data) {
@@ -211,7 +228,10 @@ function updateHistoryDisplay(history) {
 
   list.innerHTML = history
     .map((pred) => {
-      const date = new Date(pred.prediction_date || pred.created_at).toLocaleString("en-US", {
+      // ✅ Fix invalid date handling
+      const dateStr =
+        pred.prediction_date || pred.generatedAt || pred.created_at || new Date().toISOString();
+      const date = new Date(dateStr).toLocaleString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -219,10 +239,23 @@ function updateHistoryDisplay(history) {
         minute: "2-digit",
       });
 
-      const playoff = Math.round((pred.playoff_probability || 0) * 100);
-      const division = Math.round((pred.division_probability || 0) * 100);
-      const conference = Math.round((pred.conference_probability || 0) * 100);
-      const superbowl = Math.round((pred.superbowl_probability || 0) * 100);
+      const playoff = Math.round(
+        (pred.playoff_probability > 1 ? pred.playoff_probability / 100 : pred.playoff_probability) *
+          100
+      );
+      const division = Math.round(
+        (pred.division_probability > 1 ? pred.division_probability / 100 : pred.division_probability) *
+          100
+      );
+      const conference = Math.round(
+        (pred.conference_probability > 1
+          ? pred.conference_probability / 100
+          : pred.conference_probability) * 100
+      );
+      const superbowl = Math.round(
+        (pred.superbowl_probability > 1 ? pred.superbowl_probability / 100 : pred.superbowl_probability) *
+          100
+      );
 
       return `
         <div class="history-item">
@@ -250,6 +283,10 @@ function updateHistoryDisplay(history) {
     .join("");
 }
 
+// -------------------------------
+// ERROR & MOCK HANDLING
+// -------------------------------
+
 function showError(message) {
   console.error(message);
 }
@@ -264,7 +301,7 @@ function showMockData() {
     confidence_score: 0.845,
   };
 
-  const mockSeason = { wins: 8, losses: 5, ties: 0, year: currentYear };
+  const mockSeason = { wins: 8, losses: 5, ties: 0, year: currentYear, avg_points_scored: 85.2, avg_points_allowed: 72.8 };
 
   const mockHistory = [
     { prediction_date: new Date().toISOString(), ...mockPrediction },
@@ -274,11 +311,8 @@ function showMockData() {
   updatePredictionDisplay(mockPrediction);
   updateSeasonDisplay(mockSeason);
   updateHistoryDisplay(mockHistory);
-
-  document.getElementById("off-rating").textContent = "85.2";
-  document.getElementById("def-rating").textContent = "72.8";
 }
 
-console.log("Cowboys Playoff Predictor initialized");
+console.log("✅ Cowboys Playoff Predictor (Website) initialized");
 console.log("API URL:", API_URL);
 
