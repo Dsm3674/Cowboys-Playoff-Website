@@ -9,22 +9,22 @@
 <body>
     <div class="grain"></div>
     
- 
+    <!-- Hero Section -->
     <section class="full-hero">
         <div class="hero-overlay"></div>
         <div class="hero-content">
-            <div class="hero-label">OPEN SOURCE PROJECT</div>
+            <div class="hero-label">LIVE ANALYTICS • AUTO-UPDATING</div>
             <h1 class="hero-massive">COWBOYS<br>2025-2026</h1>
-            <p class="hero-tagline">PLAYOFF PREDICTION ENGINE</p>
+            <p class="hero-tagline">REAL-TIME PLAYOFF PREDICTIONS</p>
             <div class="hero-scroll">SCROLL TO EXPLORE ↓</div>
         </div>
     </section>
 
- 
+    <!-- Navigation -->
     <nav class="main-nav">
         <div class="nav-content">
             <a href="#predictions" class="nav-link">PREDICTIONS</a>
-            <a href="#stats" class="nav-link">STATS</a>
+            <a href="#stats" class="nav-link">LIVE STATS</a>
             <a href="#history" class="nav-link">HISTORY</a>
             <a href="#about" class="nav-link">ABOUT</a>
             <a href="https://github.com/Dsm3674/Cowboys-playoff-prediction-app" target="_blank" class="nav-link github-link">
@@ -36,14 +36,13 @@
         </div>
     </nav>
 
-
     <main>
-       
+        <!-- Predictions Section -->
         <section id="predictions" class="section-dark">
             <div class="container-wide">
                 <div class="section-header">
                     <h2 class="section-title-large">CURRENT PROJECTIONS</h2>
-                    <p class="section-subtitle">Advanced analytics powered by real-time data</p>
+                    <p class="section-subtitle">Auto-updated every 2 minutes with live game data</p>
                 </div>
                 
                 <div class="prediction-showcase">
@@ -86,23 +85,20 @@
                 </div>
 
                 <div class="confidence-banner">
-                    <span class="confidence-label-inline">CONFIDENCE SCORE:</span>
-                    <span class="confidence-value-inline" id="confidence">--</span>
+                    <div>
+                        <span class="confidence-label-inline">CONFIDENCE SCORE:</span>
+                        <span class="confidence-value-inline" id="confidence">--</span>
+                    </div>
                 </div>
-
-                <button class="cta-button" id="generate-btn">
-                    <span>GENERATE NEW PREDICTION</span>
-                    <span class="button-arrow">→</span>
-                </button>
             </div>
         </section>
 
-    
+        <!-- Stats Section -->
         <section id="stats" class="section-light">
             <div class="container-wide">
                 <div class="section-header">
                     <h2 class="section-title-large">2025 SEASON</h2>
-                    <p class="section-subtitle">Performance overview</p>
+                    <p class="section-subtitle">Live performance metrics</p>
                 </div>
                 
                 <div class="stats-showcase">
@@ -138,20 +134,23 @@
                 </div>
                 
                 <div class="history-container" id="history-list">
-                    <div class="loading">Loading prediction history...</div>
+                    <div class="loading">
+                        <div class="loading-icon">📊</div>
+                        <p>Loading prediction history...</p>
+                    </div>
                 </div>
             </div>
         </section>
 
-     
+        <!-- About Section -->
         <section id="about" class="section-about">
             <div class="container-narrow">
                 <div class="about-content">
                     <h2 class="about-title">OPEN SOURCE</h2>
                     <div class="about-text">
-                        <p>This is an open source project dedicated to providing advanced analytics for Dallas Cowboys playoff predictions. Built with modern web technologies and powered by real-time data analysis.</p>
+                        <p>This is an open source project providing real-time Dallas Cowboys playoff predictions. Our system automatically updates every 2 minutes with live game data from ESPN, calculating advanced probability forecasts using sophisticated algorithms.</p>
                         
-                        <p>Our prediction engine uses sophisticated algorithms to analyze team performance, player statistics, and historical data to generate accurate probability forecasts for playoff scenarios.</p>
+                        <p>Built with modern web technologies and powered by real-time data analysis, this tool analyzes team performance, player statistics, and historical data to generate accurate playoff scenario predictions.</p>
                     </div>
 
                     <div class="team-section">
@@ -164,7 +163,7 @@
                             <div class="team-member">
                                 <div class="team-role">BOARD MEMBER</div>
                                 <div class="team-name">ANIKETH</div>
-                                <div class = "team-name"> We are currently looking for new members so apply on our I.G</div>
+                                <div class="team-name">We are currently looking for new members - apply on our I.G</div>
                             </div>
                         </div>
                     </div>
@@ -212,7 +211,7 @@
             <div class="footer-top">
                 <div class="footer-brand">
                     <h3 class="footer-logo">COWBOYS PLAYOFF PREDICTOR</h3>
-                    <p class="footer-tagline">Open Source • Advanced Analytics • Real-Time Predictions</p>
+                    <p class="footer-tagline">Open Source • Real-Time Analytics • Auto-Updating</p>
                 </div>
                 <div class="footer-links">
                     <a href="https://github.com/Dsm3674/Cowboys-playoff-prediction-app" target="_blank" class="footer-link">GITHUB</a>
@@ -221,8 +220,8 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2025 Cowboys Playoff Predictor •  Built by Divyanshu & Aniketh</p>
-                <p> 2025: The cowboys look like they have a good shot to make the playoffs</p>
+                <p>&copy; 2025 Cowboys Playoff Predictor • Built by Divyanshu & Aniketh</p>
+                <p>Auto-refreshes every 2 minutes with live ESPN data</p>
             </div>
         </div>
     </footer>
@@ -230,6 +229,6 @@
     <script src="script.js"></script>
     
 </body>
-
 </html>
+
 
