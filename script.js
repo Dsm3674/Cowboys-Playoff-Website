@@ -3,13 +3,11 @@ const API_URL =
     ? "http://localhost:3001/api"
     : "https://cowboys-playoff-prediction-app.onrender.com/api";
 
-// State management
 let currentPrediction = null;
 let predictionHistory = [];
 let seasonData = null;
 let currentYear = new Date().getFullYear();
 
-// Initialize app
 document.addEventListener("DOMContentLoaded", () => {
   initializeApp();
   setupEventListeners();
@@ -56,12 +54,11 @@ async function initializeApp() {
 
 async function loadCurrentData() {
   try {
-    const response = await fetch(`${API_URL}/cowboys/current`);
+    const response = await fetch(`${API_URL}/prediction/current`);
     if (!response.ok) throw new Error("Failed to fetch current data");
 
     const data = await response.json();
 
-    // ✅ Support both flat and nested backend responses
     currentPrediction = data.prediction || data;
     seasonData = data.season || data.seasonData || { wins: 0, losses: 0, ties: 0 };
 
@@ -93,7 +90,7 @@ async function generateNewPrediction() {
   btn.innerHTML = '<span>GENERATING...</span>';
 
   try {
-    const response = await fetch(`${API_URL}/cowboys/generate`, {
+    const response = await fetch(`${API_URL}/prediction/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
     });
@@ -125,7 +122,7 @@ async function generateNewPrediction() {
 
 async function loadPredictionHistory() {
   try {
-    const response = await fetch(`${API_URL}/cowboys/history?limit=10`);
+    const response = await fetch(`${API_URL}/prediction/history`);
     if (!response.ok) throw new Error("Failed to fetch history");
 
     const data = await response.json();
@@ -137,48 +134,21 @@ async function loadPredictionHistory() {
   }
 }
 
-// -------------------------------
-// UI UPDATE FUNCTIONS
-// -------------------------------
-
 function updatePredictionDisplay(prediction) {
   if (!prediction) return;
 
-  // ✅ Fix: handle both 0.xx and xx values safely
-  const playoffProb = Math.round(
-    (prediction.playoff_probability > 1
-      ? prediction.playoff_probability / 100
-      : prediction.playoff_probability) * 100
-  );
-  const divisionProb = Math.round(
-    (prediction.division_probability > 1
-      ? prediction.division_probability / 100
-      : prediction.division_probability) * 100
-  );
-  const conferenceProb = Math.round(
-    (prediction.conference_probability > 1
-      ? prediction.conference_probability / 100
-      : prediction.conference_probability) * 100
-  );
-  const superbowlProb = Math.round(
-    (prediction.superbowl_probability > 1
-      ? prediction.superbowl_probability / 100
-      : prediction.superbowl_probability) * 100
-  );
-  const confidence = Math.round(
-    (prediction.confidence_score > 1
-      ? prediction.confidence_score / 100
-      : prediction.confidence_score) * 100
-  );
+  const playoffProb = Math.round((prediction.playoffs || prediction.playoff_probability || 0) * 100);
+  const divisionProb = Math.round((prediction.division || prediction.division_probability || 0) * 100);
+  const conferenceProb = Math.round((prediction.conference || prediction.conference_probability || 0) * 100);
+  const superbowlProb = Math.round((prediction.superBowl || prediction.superbowl_probability || 0) * 100);
+  const confidence = Math.round((prediction.confidence_score || 75) * 100);
 
-  // Update UI
   document.getElementById("playoff-prob").textContent = `${playoffProb}%`;
   document.getElementById("division-prob").textContent = `${divisionProb}%`;
   document.getElementById("conference-prob").textContent = `${conferenceProb}%`;
   document.getElementById("superbowl-prob").textContent = `${superbowlProb}%`;
   document.getElementById("confidence").textContent = `${confidence}%`;
 
-  // Animate bars
   setTimeout(() => {
     document.getElementById("playoff-bar").style.width = `${playoffProb}%`;
     document.getElementById("division-bar").style.width = `${divisionProb}%`;
@@ -197,7 +167,6 @@ function updateSeasonDisplay(season) {
   document.getElementById("record").textContent = record;
   document.getElementById("win-pct").textContent = winPct;
 
-  // ✅ Fix: display offensive / defensive ratings if available
   if (season.avg_points_scored !== undefined)
     document.getElementById("off-rating").textContent = season.avg_points_scored.toFixed(1);
   if (season.avg_points_allowed !== undefined)
@@ -227,9 +196,7 @@ function updateHistoryDisplay(history) {
 
   list.innerHTML = history
     .map((pred) => {
-      // ✅ Fix invalid date handling
-      const dateStr =
-        pred.prediction_date || pred.generatedAt || pred.created_at || new Date().toISOString();
+      const dateStr = pred.generatedAt || pred.prediction_date || pred.created_at || new Date().toISOString();
       const date = new Date(dateStr).toLocaleString("en-US", {
         month: "short",
         day: "numeric",
@@ -238,23 +205,10 @@ function updateHistoryDisplay(history) {
         minute: "2-digit",
       });
 
-      const playoff = Math.round(
-        (pred.playoff_probability > 1 ? pred.playoff_probability / 100 : pred.playoff_probability) *
-          100
-      );
-      const division = Math.round(
-        (pred.division_probability > 1 ? pred.division_probability / 100 : pred.division_probability) *
-          100
-      );
-      const conference = Math.round(
-        (pred.conference_probability > 1
-          ? pred.conference_probability / 100
-          : pred.conference_probability) * 100
-      );
-      const superbowl = Math.round(
-        (pred.superbowl_probability > 1 ? pred.superbowl_probability / 100 : pred.superbowl_probability) *
-          100
-      );
+      const playoff = Math.round((pred.playoffs || pred.playoff_probability || 0) * 100);
+      const division = Math.round((pred.division || pred.division_probability || 0) * 100);
+      const conference = Math.round((pred.conference || pred.conference_probability || 0) * 100);
+      const superbowl = Math.round((pred.superBowl || pred.superbowl_probability || 0) * 100);
 
       return `
         <div class="history-item">
@@ -281,10 +235,6 @@ function updateHistoryDisplay(history) {
     })
     .join("");
 }
-
-// -------------------------------
-// ERROR & MOCK HANDLING
-// -------------------------------
 
 function showError(message) {
   console.error(message);
