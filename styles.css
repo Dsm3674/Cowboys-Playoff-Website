@@ -530,4 +530,100 @@ body {
   color: var(--silver);
   max-width: 500px;
 }
+/* =========================
+   FAN CONFIDENCE TRACKER — Enhanced
+   ========================= */
+
+#confidence-tracker {
+  background: linear-gradient(135deg, var(--navy) 0%, #062850 50%, var(--dark) 100%);
+  color: var(--cream);
+  padding: 8rem 2rem;
+  text-align: center;
+}
+
+.confidence-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+}
+
+.confidence-meter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.meter-bar {
+  width: 100%;
+  max-width: 500px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.1) inset;
+}
+
+.meter-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #ff6b35 0%, #ffb46b 100%);
+  box-shadow: 0 0 10px rgba(255, 107, 53, 0.7);
+  transition: width 0.6s ease, box-shadow 0.4s ease;
+}
+
+.meter-value {
+  font-size: 4rem;
+  font-weight: 900;
+  color: var(--orange);
+  text-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+}
+
+.meter-caption {
+  font-size: 1rem;
+  color: var(--silver);
+  letter-spacing: 0.15em;
+}
+
+.confidence-actions {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.vote-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem 2rem;
+  background: var(--cream);
+  color: var(--dark);
+  border: none;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.vote-btn:hover {
+  background: var(--orange);
+  color: var(--dark);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(255, 107, 53, 0.4);
+}
+
+.confidence-note {
+  font-size: 0.9rem;
+  color: var(--silver);
+  opacity: 0.8;
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+
 
