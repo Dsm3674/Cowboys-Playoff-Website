@@ -1,118 +1,158 @@
+// ================================================================
+// COWBOYS PLAYOFF PREDICTOR — FRONTEND ENGINE (v3.1)
+// ================================================================
+// Fully synced with backend endpoints:
+//   /api/prediction/current
+//   /api/prediction/generate
+//   /api/prediction/history
+//   /api/cowboys/record
+// ================================================================
+
 const API_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:3001/api"
     : "https://cowboys-playoff-prediction-app.onrender.com/api";
 
+const RETRY_ATTEMPTS = 3;
+const RETRY_DELAY = 1200;
+const currentYear = new Date().getFullYear();
+
 let currentPrediction = null;
 let predictionHistory = [];
 let seasonData = null;
-let currentYear = new Date().getFullYear();
 
 document.addEventListener("DOMContentLoaded", () => {
-  initializeApp();
+  console.log("🏈 Cowboys Playoff Predictor starting...");
+  console.log("API URL:", API_URL);
   setupEventListeners();
   setupSmoothScroll();
+  initializeApp();
 });
 
-function setupEventListeners() {
-  const generateBtn = document.getElementById("generate-btn");
-  if (generateBtn) {
-    generateBtn.addEventListener("click", generateNewPrediction);
+// -------------------- Initialization --------------------
+async function initializeApp() {
+  showLoadingState(true);
+
+  try {
+    await Promise.all([
+      loadCurrentDataWithRetry(),
+      loadLiveRecordWithRetry(),
+      loadPredictionHistoryWithRetry(),
+    ]);
+  } catch (err) {
+    console.error("❌ Initialization failed:", err);
+    showError("Unable to reach backend. Showing mock data.");
+    showMockData();
+  } finally {
+    showLoadingState(false);
   }
 }
 
+// -------------------- Event Listeners --------------------
+function setupEventListeners() {
+  const generateBtn = document.getElementById("generate-btn");
+  if (generateBtn) generateBtn.addEventListener("click", generateNewPrediction);
+
+  window.addEventListener("scroll", () => {
+    const nav = document.querySelector(".main-nav");
+    if (!nav) return;
+    if (window.scrollY > 80) nav.classList.add("scrolled");
+    else nav.classList.remove("scrolled");
+  });
+}
+
 function setupSmoothScroll() {
-  document.querySelectorAll("nav a").forEach((anchor) => {
-    anchor.addEventListener("click", function (e) {
-      if (this.getAttribute("href").startsWith("#")) {
+  document.querySelectorAll("nav a").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      const targetId = link.getAttribute("href");
+      if (targetId && targetId.startsWith("#")) {
         e.preventDefault();
-        const target = document.querySelector(this.getAttribute("href"));
-        if (target) {
-          target.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-        }
+        const section = document.querySelector(targetId);
+        if (section) section.scrollIntoView({ behavior: "smooth" });
       }
     });
   });
 }
 
-async function initializeApp() {
-  try {
-    await Promise.all([
-      loadCurrentData(),
-      loadLiveRecord(),
-      loadPredictionHistory(),
-    ]);
-  } catch (error) {
-    console.error("Error initializing app:", error);
-    showError("Unable to connect to API. Using sample data.");
-    showMockData();
+// -------------------- API Helpers --------------------
+async function fetchWithRetry(url, options = {}, attempts = RETRY_ATTEMPTS) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(url, options);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      console.warn(`Fetch ${i + 1}/${attempts} failed: ${url}`, err.message);
+      if (i === attempts - 1) throw err;
+      await new Promise((r) => setTimeout(r, RETRY_DELAY * (i + 1)));
+    }
   }
 }
 
-async function loadCurrentData() {
+// -------------------- Data Loaders --------------------
+async function loadCurrentDataWithRetry() {
+  const url = `${API_URL}/prediction/current`;
+  const data = await fetchWithRetry(url);
+
+  currentPrediction = data.prediction || data;
+  seasonData = data.season || data.seasonData || { wins: 0, losses: 0, ties: 0 };
+
+  updatePredictionDisplay(currentPrediction);
+  updateSeasonDisplay(seasonData);
+}
+
+async function loadLiveRecordWithRetry() {
+  const url = `${API_URL}/cowboys/record?year=${currentYear}`;
   try {
-    const response = await fetch(`${API_URL}/prediction/current`);
-    if (!response.ok) throw new Error("Failed to fetch current data");
-
-    const data = await response.json();
-
-    currentPrediction = data.prediction || data;
-    seasonData = data.season || data.seasonData || { wins: 0, losses: 0, ties: 0 };
-
-    updatePredictionDisplay(currentPrediction);
-    updateSeasonDisplay(seasonData);
-  } catch (error) {
-    console.error("Error loading current data:", error);
-    throw error;
+    const record = await fetchWithRetry(url);
+    // Merge into seasonData without removing ratings
+    seasonData = { ...seasonData, ...record };
+    updateLiveRecordDisplay(seasonData);
+  } catch {
+    console.warn("Live record unavailable — continuing with prediction data only.");
   }
 }
 
-async function loadLiveRecord() {
+async function loadPredictionHistoryWithRetry() {
+  const url = `${API_URL}/prediction/history`;
   try {
-    const response = await fetch(`${API_URL}/cowboys/record?year=${currentYear}`);
-    if (!response.ok) throw new Error("Failed to fetch live record");
-
-    const data = await response.json();
-    updateLiveRecordDisplay(data);
-  } catch (error) {
-    console.warn("Live record endpoint not available, skipping...");
+    const data = await fetchWithRetry(url);
+    predictionHistory = data.history || [];
+    updateHistoryDisplay(predictionHistory);
+  } catch {
+    console.warn("Prediction history failed to load.");
   }
 }
 
+// -------------------- Generate Prediction --------------------
 async function generateNewPrediction() {
   const btn = document.getElementById("generate-btn");
-  const originalText = btn.innerHTML;
+  if (!btn) return;
 
+  const originalText = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = '<span>GENERATING...</span>';
+  btn.innerHTML = "<span>GENERATING...</span>";
 
   try {
-    const response = await fetch(`${API_URL}/prediction/generate`, {
+    const url = `${API_URL}/prediction/generate`;
+    const data = await fetchWithRetry(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
     });
 
-    if (!response.ok) throw new Error("Failed to generate prediction");
-
-    const data = await response.json();
     currentPrediction = data.prediction || data;
-
     updatePredictionDisplay(currentPrediction);
-    await loadPredictionHistory();
+    await loadPredictionHistoryWithRetry();
 
-    btn.innerHTML = '<span>✓ PREDICTION UPDATED</span>';
+    btn.innerHTML = "<span>✓ UPDATED</span>";
     setTimeout(() => {
       btn.innerHTML = originalText;
       btn.disabled = false;
     }, 2000);
-  } catch (error) {
-    console.error("Error generating prediction:", error);
-    showError("Failed to generate new prediction. Please try again.");
-
-    btn.innerHTML = '<span>ERROR - TRY AGAIN</span>';
+  } catch (err) {
+    console.error("Error generating new prediction:", err);
+    showError("Prediction generation failed.");
+    btn.innerHTML = "<span>ERROR - TRY AGAIN</span>";
     setTimeout(() => {
       btn.innerHTML = originalText;
       btn.disabled = false;
@@ -120,41 +160,28 @@ async function generateNewPrediction() {
   }
 }
 
-async function loadPredictionHistory() {
-  try {
-    const response = await fetch(`${API_URL}/prediction/history`);
-    if (!response.ok) throw new Error("Failed to fetch history");
-
-    const data = await response.json();
-    predictionHistory = data.history || [];
-    updateHistoryDisplay(predictionHistory);
-  } catch (error) {
-    console.error("Error loading history:", error);
-    throw error;
-  }
-}
-
+// -------------------- UI Updates --------------------
 function updatePredictionDisplay(prediction) {
   if (!prediction) return;
 
-  const playoffProb = Math.round((prediction.playoffs || prediction.playoff_probability || 0) * 100);
-  const divisionProb = Math.round((prediction.division || prediction.division_probability || 0) * 100);
-  const conferenceProb = Math.round((prediction.conference || prediction.conference_probability || 0) * 100);
-  const superbowlProb = Math.round((prediction.superBowl || prediction.superbowl_probability || 0) * 100);
-  const confidence = Math.round((prediction.confidence_score || 75) * 100);
+  const playoffProb = toPercent(prediction.playoffs || prediction.playoff_probability);
+  const divisionProb = toPercent(prediction.division || prediction.division_probability);
+  const conferenceProb = toPercent(prediction.conference || prediction.conference_probability);
+  const superbowlProb = toPercent(prediction.superBowl || prediction.superbowl_probability);
+  const confidence = normalizeConfidence(prediction.confidence_score);
 
-  document.getElementById("playoff-prob").textContent = `${playoffProb}%`;
-  document.getElementById("division-prob").textContent = `${divisionProb}%`;
-  document.getElementById("conference-prob").textContent = `${conferenceProb}%`;
-  document.getElementById("superbowl-prob").textContent = `${superbowlProb}%`;
-  document.getElementById("confidence").textContent = `${confidence}%`;
+  safeSetText("playoff-prob", `${playoffProb}%`);
+  safeSetText("division-prob", `${divisionProb}%`);
+  safeSetText("conference-prob", `${conferenceProb}%`);
+  safeSetText("superbowl-prob", `${superbowlProb}%`);
+  safeSetText("confidence", `${confidence}%`);
 
   setTimeout(() => {
-    document.getElementById("playoff-bar").style.width = `${playoffProb}%`;
-    document.getElementById("division-bar").style.width = `${divisionProb}%`;
-    document.getElementById("conference-bar").style.width = `${conferenceProb}%`;
-    document.getElementById("superbowl-bar").style.width = `${superbowlProb}%`;
-  }, 100);
+    safeSetWidth("playoff-bar", playoffProb);
+    safeSetWidth("division-bar", divisionProb);
+    safeSetWidth("conference-bar", conferenceProb);
+    safeSetWidth("superbowl-bar", superbowlProb);
+  }, 150);
 }
 
 function updateSeasonDisplay(season) {
@@ -164,13 +191,14 @@ function updateSeasonDisplay(season) {
   const totalGames = season.wins + season.losses + (season.ties || 0);
   const winPct = totalGames > 0 ? (season.wins / totalGames).toFixed(3) : ".000";
 
-  document.getElementById("record").textContent = record;
-  document.getElementById("win-pct").textContent = winPct;
+  safeSetText("record", record);
+  safeSetText("win-pct", winPct);
 
   if (season.avg_points_scored !== undefined)
-    document.getElementById("off-rating").textContent = season.avg_points_scored.toFixed(1);
+    safeSetText("off-rating", season.avg_points_scored.toFixed(1));
+
   if (season.avg_points_allowed !== undefined)
-    document.getElementById("def-rating").textContent = season.avg_points_allowed.toFixed(1);
+    safeSetText("def-rating", season.avg_points_allowed.toFixed(1));
 }
 
 function updateLiveRecordDisplay(data) {
@@ -180,23 +208,23 @@ function updateLiveRecordDisplay(data) {
   const totalGames = data.wins + data.losses + (data.ties || 0);
   const winPct = totalGames > 0 ? (data.wins / totalGames).toFixed(3) : ".000";
 
-  document.getElementById("record").textContent = record;
-  document.getElementById("win-pct").textContent = winPct;
+  safeSetText("record", record);
+  safeSetText("win-pct", winPct);
 }
 
 function updateHistoryDisplay(history) {
-  const list = document.getElementById("history-list");
-  if (!list) return;
+  const container = document.getElementById("history-list");
+  if (!container) return;
 
   if (!history || history.length === 0) {
-    list.innerHTML =
-      '<div class="loading">No prediction history yet. Generate a prediction to start tracking!</div>';
+    container.innerHTML =
+      '<div class="loading">No prediction history yet. Generate one!</div>';
     return;
   }
 
-  list.innerHTML = history
+  container.innerHTML = history
     .map((pred) => {
-      const dateStr = pred.generatedAt || pred.prediction_date || pred.created_at || new Date().toISOString();
+      const dateStr = pred.generatedAt || pred.prediction_date || new Date().toISOString();
       const date = new Date(dateStr).toLocaleString("en-US", {
         month: "short",
         day: "numeric",
@@ -205,56 +233,90 @@ function updateHistoryDisplay(history) {
         minute: "2-digit",
       });
 
-      const playoff = Math.round((pred.playoffs || pred.playoff_probability || 0) * 100);
-      const division = Math.round((pred.division || pred.division_probability || 0) * 100);
-      const conference = Math.round((pred.conference || pred.conference_probability || 0) * 100);
-      const superbowl = Math.round((pred.superBowl || pred.superbowl_probability || 0) * 100);
+      const playoff = toPercent(pred.playoffs || pred.playoff_probability);
+      const division = toPercent(pred.division || pred.division_probability);
+      const conference = toPercent(pred.conference || pred.conference_probability);
+      const superbowl = toPercent(pred.superBowl || pred.superbowl_probability);
 
       return `
         <div class="history-item">
           <div class="history-date">${date}</div>
           <div class="history-predictions">
-            <div class="history-pred">
-              <div class="history-pred-label">PLAYOFFS</div>
-              <div class="history-pred-value">${playoff}%</div>
-            </div>
-            <div class="history-pred">
-              <div class="history-pred-label">DIVISION</div>
-              <div class="history-pred-value">${division}%</div>
-            </div>
-            <div class="history-pred">
-              <div class="history-pred-label">CONFERENCE</div>
-              <div class="history-pred-value">${conference}%</div>
-            </div>
-            <div class="history-pred">
-              <div class="history-pred-label">SUPER BOWL</div>
-              <div class="history-pred-value">${superbowl}%</div>
-            </div>
+            <div class="history-pred"><div class="history-pred-label">PLAYOFFS</div><div class="history-pred-value">${playoff}%</div></div>
+            <div class="history-pred"><div class="history-pred-label">DIVISION</div><div class="history-pred-value">${division}%</div></div>
+            <div class="history-pred"><div class="history-pred-label">CONFERENCE</div><div class="history-pred-value">${conference}%</div></div>
+            <div class="history-pred"><div class="history-pred-label">SUPER BOWL</div><div class="history-pred-value">${superbowl}%</div></div>
           </div>
         </div>`;
     })
     .join("");
 }
 
-function showError(message) {
-  console.error(message);
+// -------------------- Helpers --------------------
+function safeSetText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
 }
 
+function safeSetWidth(id, percent) {
+  const el = document.getElementById(id);
+  if (el) el.style.width = `${percent}%`;
+}
+
+function showError(msg) {
+  console.error(msg);
+  const banner = document.createElement("div");
+  banner.className = "error-banner";
+  banner.textContent = msg;
+  banner.style.cssText =
+    "position:fixed;top:0;left:0;width:100%;padding:10px;background:#ff6b35;color:white;text-align:center;z-index:9999;";
+  document.body.appendChild(banner);
+  setTimeout(() => banner.remove(), 4000);
+}
+
+function showLoadingState(active) {
+  const root = document.body;
+  if (active) root.classList.add("loading-active");
+  else root.classList.remove("loading-active");
+}
+
+// Converts 0.82 -> 82, 82 -> 82
+function toPercent(value) {
+  if (value === null || value === undefined) return 0;
+  const num = Number(value);
+  return num <= 1 ? Math.round(num * 100) : Math.round(num);
+}
+
+// Fixes 0.75 → 75% and 75 → 75%
+function normalizeConfidence(raw) {
+  if (raw === undefined || raw === null) return 75;
+  const val = Number(raw);
+  if (isNaN(val)) return 75;
+  return val > 1 ? Math.round(val) : Math.round(val * 100);
+}
+
+// -------------------- Mock Mode --------------------
 function showMockData() {
-  console.log("⚠️ Using mock data (API not reachable)");
+  console.warn("⚠️ Using mock fallback data (API unreachable)");
   const mockPrediction = {
-    playoff_probability: 0.725,
-    division_probability: 0.453,
-    conference_probability: 0.187,
-    superbowl_probability: 0.082,
-    confidence_score: 0.845,
+    playoffs: 0.76,
+    division: 0.48,
+    conference: 0.19,
+    superBowl: 0.07,
+    confidence_score: 0.85,
   };
 
-  const mockSeason = { wins: 8, losses: 5, ties: 0, year: currentYear, avg_points_scored: 85.2, avg_points_allowed: 72.8 };
+  const mockSeason = {
+    wins: 8,
+    losses: 5,
+    ties: 0,
+    avg_points_scored: 27.3,
+    avg_points_allowed: 21.4,
+  };
 
   const mockHistory = [
-    { prediction_date: new Date().toISOString(), ...mockPrediction },
-    { prediction_date: new Date(Date.now() - 86400000).toISOString(), ...mockPrediction },
+    { generatedAt: new Date().toISOString(), ...mockPrediction },
+    { generatedAt: new Date(Date.now() - 86400000).toISOString(), ...mockPrediction },
   ];
 
   updatePredictionDisplay(mockPrediction);
@@ -262,5 +324,16 @@ function showMockData() {
   updateHistoryDisplay(mockHistory);
 }
 
-console.log("✅ Cowboys Playoff Predictor (Website) initialized");
-console.log("API URL:", API_URL);
+// -------------------- Dev Diagnostics --------------------
+window.debugCowboys = {
+  reload: initializeApp,
+  state: () => ({
+    currentPrediction,
+    predictionHistory,
+    seasonData,
+  }),
+  mock: showMockData,
+};
+
+console.log("✅ Frontend logic loaded successfully");
+
