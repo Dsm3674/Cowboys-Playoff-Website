@@ -13,9 +13,9 @@
   <section class="full-hero">
     <div class="hero-overlay"></div>
     <div class="hero-content">
-      <div class="hero-label">OPEN SOURCE PROJECT</div>
-      <h1 class="hero-massive">COWBOYS<br />2025-2026</h1>
-      <p class="hero-tagline">PLAYOFF PREDICTION ENGINE</p>
+      <div class="hero-label">VERSION 2.0 LIVE</div>
+      <h1 class="hero-massive">COWBOYS<br />SIMULATOR</h1>
+      <p class="hero-tagline">AI PREDICTIONS • PLAYER ANALYTICS • SCENARIOS</p>
       <div class="hero-scroll">SCROLL TO EXPLORE ↓</div>
     </div>
   </section>
@@ -24,163 +24,66 @@
   <nav class="main-nav">
     <div class="nav-content">
       <a href="#predictions" class="nav-link">PREDICTIONS</a>
-      <a href="#confidence-tracker" class="nav-link">FAN CONFIDENCE</a>
-      <a href="#history" class="nav-link">HISTORY</a>
-      <a href="#about" class="nav-link">ABOUT</a>
-      <a
-        href="https://github.com/Dsm3674/Cowboys-playoff-prediction-app"
-        target="_blank"
-        class="nav-link github-link"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path
-            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-          />
-        </svg>
-        GITHUB
-      </a>
+      <a href="#features" class="nav-link">NEW FEATURES</a>
+      <a href="https://cowboys-playoff-prediction-app.onrender.com" class="nav-link cta-link">LAUNCH APP</a>
     </div>
   </nav>
 
   <!-- MAIN -->
   <main>
-    <!-- Predictions -->
+    <!-- Predictions Summary -->
     <section id="predictions" class="section-dark">
       <div class="container-wide">
         <div class="section-header">
           <h2 class="section-title-large">CURRENT PROJECTIONS</h2>
-          <p class="section-subtitle">Advanced analytics powered by real-time data</p>
         </div>
-
         <div class="prediction-showcase">
           <div class="prediction-main">
             <div class="prediction-card-large">
               <div class="prediction-icon">🏈</div>
               <div class="prediction-label-large">PLAYOFF CHANCES</div>
               <div class="prediction-value-massive" id="playoff-prob">--</div>
-              <div class="prediction-bar-large">
-                <div class="prediction-fill-large" id="playoff-bar"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="prediction-grid-compact">
-            <div class="prediction-card-compact">
-              <div class="prediction-label-compact">DIVISION</div>
-              <div class="prediction-value-compact" id="division-prob">--</div>
-              <div class="prediction-bar-compact">
-                <div class="prediction-fill-compact" id="division-bar"></div>
-              </div>
-            </div>
-
-            <div class="prediction-card-compact">
-              <div class="prediction-label-compact">CONFERENCE</div>
-              <div class="prediction-value-compact" id="conference-prob">--</div>
-              <div class="prediction-bar-compact">
-                <div class="prediction-fill-compact" id="conference-bar"></div>
-              </div>
-            </div>
-
-            <div class="prediction-card-compact">
-              <div class="prediction-label-compact">SUPER BOWL</div>
-              <div class="prediction-value-compact" id="superbowl-prob">--</div>
-              <div class="prediction-bar-compact">
-                <div class="prediction-fill-compact" id="superbowl-bar"></div>
-              </div>
             </div>
           </div>
         </div>
-
-        <div class="confidence-banner">
-          <span class="confidence-label-inline">CONFIDENCE SCORE:</span>
-          <span class="confidence-value-inline" id="confidence">--</span>
-        </div>
-
-        <button class="cta-button" id="generate-btn">
-          <span>GENERATE NEW PREDICTION</span>
-          <span class="button-arrow">→</span>
-        </button>
       </div>
     </section>
 
-    <!-- 🆕 Fan Confidence Tracker -->
-    <section id="confidence-tracker" class="section-light">
+    <!-- NEW FEATURES SECTION -->
+    <section id="features" class="section-light">
       <div class="container-wide">
         <div class="section-header">
-          <h2 class="section-title-large">FAN CONFIDENCE TRACKER</h2>
-          <p class="section-subtitle">
-            How optimistic are Cowboys fans this week?
-          </p>
+          <h2 class="section-title-large">ADVANCED ANALYTICS</h2>
+          <p class="section-subtitle">Now featuring AI-driven simulation tools</p>
         </div>
-
-        <div class="confidence-grid">
-          <div class="confidence-meter">
-            <div class="meter-bar">
-              <div class="meter-fill" id="fan-meter"></div>
-            </div>
-            <div class="meter-value" id="fan-meter-value">--%</div>
-            <p class="meter-caption">Fan Optimism Level</p>
-          </div>
-
-          <div class="confidence-actions">
-            <button class="vote-btn up" id="vote-up">👍 Feeling Confident</button>
-            <button class="vote-btn down" id="vote-down">👎 Not So Sure</button>
-          </div>
-
-          <p class="confidence-note">
-            Vote once per session. See how Cowboys Nation feels before kickoff!
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- History -->
-    <section id="history" class="section-dark">
-      <div class="container-wide">
-        <div class="section-header">
-          <h2 class="section-title-large">PREDICTION ARCHIVE</h2>
-          <p class="section-subtitle">Historical probability tracking</p>
-        </div>
-        <div class="history-container" id="history-list">
-          <div class="loading">Loading prediction history...</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- About -->
-    <section id="about" class="section-about">
-      <div class="container-narrow">
-        <div class="about-content">
-          <h2 class="about-title">OPEN SOURCE</h2>
-          <div class="about-text">
-            <p>
-              This open-source project provides advanced analytics for Dallas
-              Cowboys playoff predictions.
-            </p>
-            <p>
-              Our engine uses real-time data to predict playoff probabilities
-              and visualize trends.
-            </p>
-          </div>
+        
+        <div class="features-grid">
+           <!-- Feature 2 & 12 -->
+           <div class="feature-box">
+             <h3>🤖 Story Simulator</h3>
+             <p>Run "What If" scenarios. See how injuries or weather impact the season.</p>
+           </div>
+           <!-- Feature 5 & 11 -->
+           <div class="feature-box">
+             <h3>📊 Player Impact Index</h3>
+             <p>Visual radar charts tracking individual player contributions to win probability.</p>
+           </div>
+           <!-- Feature 9 -->
+           <div class="feature-box">
+             <h3>🧠 Multi-Model ML</h3>
+             <p>Compare Random Forest, LSTM, and Elo predictions in real-time.</p>
+           </div>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- Footer -->
   <footer class="main-footer">
     <div class="footer-content">
-      <div class="footer-bottom">
-        <p>
-          &copy; 2025 Cowboys Playoff Predictor • Built by Divyanshu & Aniketh
-        </p>
-      </div>
+      <p>&copy; 2025 Cowboys Playoff Predictor</p>
     </div>
   </footer>
 
   <script src="script.js"></script>
 </body>
 </html>
-
-
-
