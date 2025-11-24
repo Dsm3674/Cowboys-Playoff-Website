@@ -1,57 +1,45 @@
 // ================================================================
-// COWBOYS PLAYOFF PREDICTOR — FRONTEND ENGINE (v3.4 FINAL)
+// COWBOYS PREDICTOR - GITHUB FIX (v3.5)
 // ================================================================
 
-// 1. POINT TO LOCALHOST TO FIX 500 ERRORS
-// We are forcing localhost because your live Render server is outdated.
-const API_URL = "http://localhost:3001/api";
+// 1. POINT TO YOUR LIVE RENDER SERVER
+const API_URL = "https://cowboys-playoff-prediction-app.onrender.com/api";
 
 const RETRY_ATTEMPTS = 1;
 const RETRY_DELAY = 1000;
 
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("🏈 Cowboys Playoff Predictor starting...");
+  console.log("Starting App...");
   setupFanConfidence();
   setupSmoothScroll();
   initializeApp();
 });
 
-// -------------------- Initialization --------------------
 async function initializeApp() {
   try {
-    console.log(`Connecting to Backend at: ${API_URL}`);
-    
-    // Attempt to load data
-    const predictionData = await fetchWithRetry(`${API_URL}/prediction/current`);
-    
-    // If successful, update UI
-    if (predictionData) {
-      updatePredictionDisplay(predictionData.prediction || predictionData);
-    }
-
+    // Try to fetch live data
+    const data = await fetchWithRetry(`${API_URL}/prediction/current`);
+    updatePredictionDisplay(data.prediction || data);
   } catch (err) {
-    console.warn("⚠️ Backend unreachable or erroring. Switching to Offline Mode.");
-    showMockData(); // FALLBACK to ensure website looks good
+    console.warn("⚠️ Server Error (500) or Offline. Switching to Mock Data.");
+    // 2. FALLBACK TO MOCK DATA IF SERVER CRASHES
+    showMockData();
   }
 }
 
-// -------------------- Fallback / Mock Data --------------------
 function showMockData() {
-  // This data displays if the server is off
-  const mockPrediction = {
+  const mock = {
     playoffs: 0.72,
     division: 0.45,
     conference: 0.18,
     superBowl: 0.08,
     confidence_score: 85
   };
-  updatePredictionDisplay(mockPrediction);
+  updatePredictionDisplay(mock);
 }
 
-// -------------------- Display Logic --------------------
 function updatePredictionDisplay(pred) {
   if (!pred) return;
-  
   const playoff = toPercent(pred.playoffs || pred.playoff_probability);
   const div = toPercent(pred.division || pred.division_probability);
   const bowl = toPercent(pred.superBowl || pred.superbowl_probability);
@@ -65,72 +53,11 @@ function updatePredictionDisplay(pred) {
   safeSetWidth("superbowl-bar", bowl);
 }
 
-// -------------------- API Helper --------------------
-async function fetchWithRetry(url, attempts = RETRY_ATTEMPTS) {
-  for (let i = 0; i < attempts; i++) {
-    try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
-    } catch (err) {
-      if (i === attempts - 1) throw err;
-      await new Promise(r => setTimeout(r, RETRY_DELAY));
-    }
-  }
-}
-
-// -------------------- Fan Confidence --------------------
-const FAN_KEY = "fanVote2025";
-let fanConfidence = 65;
-
-function setupFanConfidence() {
-  const saved = localStorage.getItem(FAN_KEY);
-  if (saved) fanConfidence = parseInt(saved, 10);
-  
-  updateFanMeter();
-  
-  const upBtn = document.getElementById("vote-up");
-  const downBtn = document.getElementById("vote-down");
-  
-  if (upBtn) upBtn.addEventListener("click", () => handleFanVote(true));
-  if (downBtn) downBtn.addEventListener("click", () => handleFanVote(false));
-}
-
-function handleFanVote(upvote) {
-  if (localStorage.getItem(FAN_KEY + "_voted")) {
-    alert("You already voted this session!");
-    return;
-  }
-  fanConfidence = Math.min(100, Math.max(0, fanConfidence + (upvote ? 5 : -5)));
-  localStorage.setItem(FAN_KEY, fanConfidence);
-  localStorage.setItem(FAN_KEY + "_voted", "true");
-  updateFanMeter();
-}
-
-function updateFanMeter() {
-  const bar = document.getElementById("fan-meter");
-  const val = document.getElementById("fan-meter-value");
-  
-  if (bar) bar.style.width = `${fanConfidence}%`;
-  if (val) val.textContent = `${fanConfidence}%`;
-}
-
-// -------------------- Utils --------------------
-function setupSmoothScroll() {
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-      e.preventDefault();
-      document.querySelector(this.getAttribute('href'))?.scrollIntoView({
-        behavior: 'smooth'
-      });
-    });
-  });
-}
-
-function toPercent(v) {
-  if (v == null) return 0;
-  const n = Number(v);
-  return n <= 1 ? Math.round(n * 100) : Math.round(n);
+// Helper Functions
+async function fetchWithRetry(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return await res.json();
 }
 
 function safeSetText(id, text) {
@@ -141,4 +68,48 @@ function safeSetText(id, text) {
 function safeSetWidth(id, percent) {
   const el = document.getElementById(id);
   if (el) el.style.width = `${percent}%`;
+}
+
+function toPercent(v) {
+  if (v == null) return 0;
+  return Number(v) <= 1 ? Math.round(Number(v) * 100) : Math.round(Number(v));
+}
+
+// Fan Confidence Logic
+const FAN_KEY = "fanVote2025";
+let fanConfidence = 65;
+
+function setupFanConfidence() {
+  const saved = localStorage.getItem(FAN_KEY);
+  if (saved) fanConfidence = parseInt(saved, 10);
+  updateFanMeter();
+  
+  const up = document.getElementById("vote-up");
+  const down = document.getElementById("vote-down");
+  if(up) up.addEventListener("click", () => handleFanVote(true));
+  if(down) down.addEventListener("click", () => handleFanVote(false));
+}
+
+function handleFanVote(upvote) {
+  if (localStorage.getItem(FAN_KEY + "_voted")) return alert("Already voted!");
+  fanConfidence = Math.min(100, Math.max(0, fanConfidence + (upvote ? 5 : -5)));
+  localStorage.setItem(FAN_KEY, fanConfidence);
+  localStorage.setItem(FAN_KEY + "_voted", "true");
+  updateFanMeter();
+}
+
+function updateFanMeter() {
+  const bar = document.getElementById("fan-meter");
+  const val = document.getElementById("fan-meter-value");
+  if(bar) bar.style.width = `${fanConfidence}%`;
+  if(val) val.textContent = `${fanConfidence}%`;
+}
+
+function setupSmoothScroll() {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      document.querySelector(this.getAttribute('href'))?.scrollIntoView({behavior: 'smooth'});
+    });
+  });
 }
