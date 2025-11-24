@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LONE STAR ANALYTICS | Cowboys 2025</title>
+  
+  <!-- FIX 1: Add a Favicon (Cowboys Star) to stop the 404 Error -->
+  <link rel="icon" href="https://static.www.nfl.com/t_q-best/league/api/clubs/logos/DAL" type="image/png" />
+  
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -15,7 +19,7 @@
     <div class="hero-content">
       <div class="hero-label">VERSION 2.0 LIVE</div>
       <h1 class="hero-massive">COWBOYS<br />PREDICTOR</h1>
-      <p class="hero-tagline">AI SIMULATIONS • PLAYER RADAR • LIVE ODDS</p>
+      <p class="hero-tagline">AI SIMULATIONS • PLAYER RADAR • LIVE ODDS (Open Source Project)</p>
       <div class="hero-scroll">SCROLL TO EXPLORE ↓</div>
     </div>
   </section>
@@ -26,10 +30,12 @@
       <a href="#predictions" class="nav-link">LIVE ODDS</a>
       <a href="#features" class="nav-link">NEW FEATURES</a>
       <a href="#confidence" class="nav-link">FAN PULSE</a>
-      <!-- Link to the actual React App -->
-      <a href="http://localhost:3000" target="_blank" class="nav-link cta-link">
+      
+      <!-- FIX 2: Point to the REAL Render App, not Localhost -->
+      <a href="https://cowboys-playoff-prediction-app.onrender.com" target="_blank" class="nav-link cta-link">
         LAUNCH APP ↗
       </a>
+      
     </div>
   </nav>
 
@@ -103,6 +109,13 @@
             <h3>User Profiles</h3>
             <p>Create an account to save your prediction history, customize the UI theme, and vote in community polls.</p>
           </div>
+        </div>
+        
+        <!-- Extra Launch Button at Bottom -->
+        <div style="text-align: center; margin-top: 4rem;">
+            <a href="https://cowboys-playoff-prediction-app.onrender.com" target="_blank" class="cta-button">
+              TRY THE SIMULATOR
+            </a>
         </div>
       </div>
     </section>
