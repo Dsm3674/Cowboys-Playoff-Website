@@ -1,14 +1,15 @@
 // ================================================================
-// COWBOYS PLAYOFF PREDICTOR — FRONTEND ENGINE (v3.2)
+// COWBOYS PLAYOFF PREDICTOR — FRONTEND ENGINE (v3.3 Fixed)
 // ================================================================
-const API_URL =
-  window.location.hostname === "localhost"
-    ? "http://localhost:3001/api"
+
+// ⚠️ IMPORTANT: While developing, use localhost. 
+// Switch this to your Render URL only after you deploy the Backend changes.
+const API_URL = window.location.hostname === "localhost"
+    ? "http://localhost:3001/api" 
     : "https://cowboys-playoff-prediction-app.onrender.com/api";
 
-const RETRY_ATTEMPTS = 3;
-const RETRY_DELAY = 1200;
-const currentYear = new Date().getFullYear();
+const RETRY_ATTEMPTS = 2;
+const RETRY_DELAY = 1000;
 
 let currentPrediction = null;
 let predictionHistory = [];
@@ -17,42 +18,23 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log("🏈 Cowboys Playoff Predictor starting...");
   setupEventListeners();
   setupSmoothScroll();
-  initializeApp();
   setupFanConfidence();
+  initializeApp();
 });
 
 // -------------------- Initialization --------------------
 async function initializeApp() {
   try {
+    console.log(`Connecting to API at: ${API_URL}`);
     await Promise.all([
       loadCurrentDataWithRetry(),
       loadPredictionHistoryWithRetry(),
     ]);
   } catch (err) {
-    console.error("❌ Initialization failed:", err);
-    showError("Unable to reach backend. Showing mock data.");
-    showMockData();
+    console.error("❌ Initialization failed. Switching to Offline Mode.", err);
+    showError("Backend unreachable. Showing offline simulation data.");
+    showMockData(); // <--- This function is now defined below
   }
-}
-
-// -------------------- Event Listeners --------------------
-function setupEventListeners() {
-  const generateBtn = document.getElementById("generate-btn");
-  if (generateBtn) generateBtn.addEventListener("click", generateNewPrediction);
-}
-
-function setupSmoothScroll() {
-  document.querySelectorAll("nav a").forEach((link) => {
-    link.addEventListener("click", (e) => {
-      const targetId = link.getAttribute("href");
-      if (targetId.startsWith("#")) {
-        e.preventDefault();
-        document
-          .querySelector(targetId)
-          ?.scrollIntoView({ behavior: "smooth" });
-      }
-    });
-  });
 }
 
 // -------------------- API --------------------
@@ -83,71 +65,63 @@ async function loadPredictionHistoryWithRetry() {
   updateHistoryDisplay(predictionHistory);
 }
 
-async function generateNewPrediction() {
-  const btn = document.getElementById("generate-btn");
-  btn.disabled = true;
-  btn.textContent = "GENERATING...";
+// -------------------- Fallback / Mock Data --------------------
+// This was missing in the previous version
+function showMockData() {
+  console.log("⚠️ Using Mock Data");
+  
+  const mockPrediction = {
+    playoffs: 0.65,
+    division: 0.35,
+    conference: 0.15,
+    superBowl: 0.05,
+    confidence_score: 70
+  };
 
-  try {
-    const data = await fetchWithRetry(`${API_URL}/prediction/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
-    currentPrediction = data.prediction || data;
-    updatePredictionDisplay(currentPrediction);
-    await loadPredictionHistoryWithRetry();
-    btn.textContent = "✓ UPDATED";
-    setTimeout(() => {
-      btn.disabled = false;
-      btn.textContent = "GENERATE NEW PREDICTION →";
-    }, 2000);
-  } catch (err) {
-    showError("Prediction generation failed.");
-    btn.textContent = "ERROR - TRY AGAIN";
-    setTimeout(() => (btn.textContent = "GENERATE NEW PREDICTION →"), 2000);
-  }
+  updatePredictionDisplay(mockPrediction);
+
+  // Mock History
+  const mockHistory = [
+    { generatedAt: new Date().toISOString(), playoffs: 0.62, division: 0.30, conference: 0.12, superBowl: 0.04 },
+    { generatedAt: new Date(Date.now() - 86400000).toISOString(), playoffs: 0.58, division: 0.28, conference: 0.10, superBowl: 0.03 }
+  ];
+  
+  updateHistoryDisplay(mockHistory);
 }
 
-// -------------------- Display --------------------
+// -------------------- Display Logic --------------------
 function updatePredictionDisplay(pred) {
   if (!pred) return;
-  const playoff = toPercent(pred.playoffs);
-  const div = toPercent(pred.division);
-  const conf = toPercent(pred.conference);
-  const bowl = toPercent(pred.superBowl);
+  const playoff = toPercent(pred.playoffs || pred.playoff_probability);
+  const div = toPercent(pred.division || pred.division_probability);
+  const conf = toPercent(pred.conference || pred.conference_probability);
+  const bowl = toPercent(pred.superBowl || pred.superbowl_probability);
   const confScore = normalizeConfidence(pred.confidence_score);
+
   safeSetText("playoff-prob", `${playoff}%`);
   safeSetText("division-prob", `${div}%`);
-  safeSetText("conference-prob", `${conf}%`);
   safeSetText("superbowl-prob", `${bowl}%`);
-  safeSetText("confidence", `${confScore}%`);
+  
   safeSetWidth("playoff-bar", playoff);
-  safeSetWidth("division-bar", div);
-  safeSetWidth("conference-bar", conf);
-  safeSetWidth("superbowl-bar", bowl);
 }
 
 function updateHistoryDisplay(history) {
+  // Since we removed the history list from index.html in the revamp, 
+  // we check if the element exists before trying to update it.
   const container = document.getElementById("history-list");
+  if (!container) return; 
+
   if (!history || history.length === 0) {
-    container.innerHTML =
-      "<div class='loading'>No prediction history yet. Generate one!</div>";
+    container.innerHTML = "<div class='loading'>No history available.</div>";
     return;
   }
-  container.innerHTML = history
-    .map(
-      (pred) => `
+  // If you added the history list back, this populates it
+  container.innerHTML = history.map(pred => `
     <div class="history-item">
-      <div class="history-date">${new Date(pred.generatedAt).toLocaleString()}</div>
-      <div class="history-predictions">
-        <div class="history-pred"><div class="history-pred-label">PLAYOFFS</div><div class="history-pred-value">${toPercent(pred.playoffs)}%</div></div>
-        <div class="history-pred"><div class="history-pred-label">DIVISION</div><div class="history-pred-value">${toPercent(pred.division)}%</div></div>
-        <div class="history-pred"><div class="history-pred-label">CONFERENCE</div><div class="history-pred-value">${toPercent(pred.conference)}%</div></div>
-        <div class="history-pred"><div class="history-pred-label">SUPER BOWL</div><div class="history-pred-value">${toPercent(pred.superBowl)}%</div></div>
-      </div>
-    </div>`
-    )
-    .join("");
+      <div>${new Date(pred.generatedAt || pred.prediction_date).toLocaleDateString()}</div>
+      <div>${toPercent(pred.playoffs || pred.playoff_probability)}% Chance</div>
+    </div>
+  `).join("");
 }
 
 // -------------------- Fan Confidence Tracker --------------------
@@ -157,54 +131,80 @@ let fanConfidence = 65;
 function setupFanConfidence() {
   const saved = localStorage.getItem(FAN_KEY);
   if (saved) fanConfidence = parseInt(saved, 10);
+  
   updateFanMeter();
-  document.getElementById("vote-up")?.addEventListener("click", () => handleFanVote(true));
-  document.getElementById("vote-down")?.addEventListener("click", () => handleFanVote(false));
+  
+  const upBtn = document.getElementById("vote-up");
+  const downBtn = document.getElementById("vote-down");
+  
+  if (upBtn) upBtn.addEventListener("click", () => handleFanVote(true));
+  if (downBtn) downBtn.addEventListener("click", () => handleFanVote(false));
 }
 
 function handleFanVote(upvote) {
-  if (localStorage.getItem(FAN_KEY)) {
-    showError("You already voted this session!");
+  if (localStorage.getItem(FAN_KEY + "_voted")) {
+    alert("You already voted this session!");
     return;
   }
   fanConfidence = Math.min(100, Math.max(0, fanConfidence + (upvote ? 5 : -5)));
   localStorage.setItem(FAN_KEY, fanConfidence);
+  localStorage.setItem(FAN_KEY + "_voted", "true");
   updateFanMeter();
 }
 
 function updateFanMeter() {
-  document.getElementById("fan-meter").style.width = `${fanConfidence}%`;
-  document.getElementById("fan-meter-value").textContent = `${fanConfidence}%`;
+  const bar = document.getElementById("fan-meter");
+  const val = document.getElementById("fan-meter-value");
+  
+  // Safety check to prevent "Cannot read properties of null"
+  if (bar) {
+    bar.style.width = `${fanConfidence}%`;
+  }
+  if (val) {
+    val.textContent = `${fanConfidence}%`;
+  }
 }
 
 // -------------------- Utils --------------------
+function setupEventListeners() {
+    // Add any specific button listeners here if needed
+}
+
+function setupSmoothScroll() {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      document.querySelector(this.getAttribute('href'))?.scrollIntoView({
+        behavior: 'smooth'
+      });
+    });
+  });
+}
+
 function toPercent(v) {
   if (v == null) return 0;
   const n = Number(v);
   return n <= 1 ? Math.round(n * 100) : Math.round(n);
 }
+
 function normalizeConfidence(v) {
   if (v == null) return 75;
   const n = Number(v);
   return n > 1 ? Math.round(n) : Math.round(n * 100);
 }
+
 function safeSetText(id, text) {
   const el = document.getElementById(id);
   if (el) el.textContent = text;
 }
+
 function safeSetWidth(id, percent) {
   const el = document.getElementById(id);
   if (el) el.style.width = `${percent}%`;
 }
-function showError(msg) {
-  console.error(msg);
-  const banner = document.createElement("div");
-  banner.className = "error-banner";
-  banner.textContent = msg;
-  banner.style.cssText =
-    "position:fixed;top:0;left:0;width:100%;padding:10px;background:#ff6b35;color:white;text-align:center;z-index:9999;";
-  document.body.appendChild(banner);
-  setTimeout(() => banner.remove(), 3000);
-}
 
+function showError(msg) {
+  console.warn(msg);
+  // Optional: create a visible banner
+}
 
